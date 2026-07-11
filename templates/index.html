@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Arm Reach Simulator</title>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:Arial, Helvetica, sans-serif;
+        }
+
+        body{
+            background:#111827;
+            color:white;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+        }
+
+        .container{
+            width:450px;
+            background:#1f2937;
+            padding:30px;
+            border-radius:12px;
+            box-shadow:0 0 20px rgba(0,0,0,.4);
+        }
+
+        h1{
+            text-align:center;
+            margin-bottom:10px;
+        }
+
+        p{
+            text-align:center;
+            color:#cbd5e1;
+            margin-bottom:25px;
+        }
+
+        .slider-box{
+            margin-bottom:25px;
+        }
+
+        .label{
+            display:flex;
+            justify-content:space-between;
+            margin-bottom:8px;
+            font-size:18px;
+        }
+
+        input[type=range]{
+            width:100%;
+        }
+
+        .status{
+            margin-top:20px;
+            text-align:center;
+            font-weight:bold;
+        }
+
+        .connected{
+            color:#22c55e;
+        }
+
+        .disconnected{
+            color:#ef4444;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🦾 Robot Arm Simulator</h1>
+
+    <p>Move the sliders to control the robot arm.</p>
+
+    <div class="slider-box">
+        <div class="label">
+            <span>X</span>
+            <span id="xValue">0.50</span>
+        </div>
+
+        <input
+            id="xSlider"
+            type="range"
+            min="-0.8"
+            max="0.8"
+            value="0.5"
+            step="0.01">
+    </div>
+
+
+    <div class="slider-box">
+        <div class="label">
+            <span>Y</span>
+            <span id="yValue">0.20</span>
+        </div>
+
+        <input
+            id="ySlider"
+            type="range"
+            min="-0.8"
+            max="0.8"
+            value="0.2"
+            step="0.01">
+    </div>
+
+
+    <div class="slider-box">
+        <div class="label">
+            <span>Z</span>
+            <span id="zValue">0.50</span>
+        </div>
+
+        <input
+            id="zSlider"
+            type="range"
+            min="0.1"
+            max="1.0"
+            value="0.5"
+            step="0.01">
+    </div>
+
+    <div id="status" class="status disconnected">
+        Connecting...
+    </div>
+
+</div>
+
+
+<script>
+
+const socket = io();
+
+const xSlider = document.getElementById("xSlider");
+const ySlider = document.getElementById("ySlider");
+const zSlider = document.getElementById("zSlider");
+
+const xValue = document.getElementById("xValue");
+const yValue = document.getElementById("yValue");
+const zValue = document.getElementById("zValue");
+
+const status = document.getElementById("status");
+
+socket.on("connect",()=>{
+
+    console.log("Connected");
+
+    status.innerHTML="Connected";
+    status.className="status connected";
+
+    sendTarget();
+});
+
+
+socket.on("disconnect",()=>{
+
+    console.log("Disconnected");
+
+    status.innerHTML="Disconnected";
+
+    status.className="status disconnected";
+
+});
+
+
+function sendTarget(){
+
+    let x=parseFloat(xSlider.value);
+    let y=parseFloat(ySlider.value);
+    let z=parseFloat(zSlider.value);
+
+    xValue.innerHTML=x.toFixed(2);
+    yValue.innerHTML=y.toFixed(2);
+    zValue.innerHTML=z.toFixed(2);
+
+    console.log("Sending",x,y,z);
+
+    socket.emit("update_target",{
+        x:x,
+        y:y,
+        z:z
+    });
+
+}
+
+xSlider.addEventListener("input",sendTarget);
+ySlider.addEventListener("input",sendTarget);
+zSlider.addEventListener("input",sendTarget);
+
+</script>
+
+</body>
+</html>
